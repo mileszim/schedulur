@@ -8,31 +8,58 @@
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="auth-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">Login</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab" aria-controls="register" aria-selected="false">Register</button>
+                    </li>
+                </ul>
+            </div>
             <div class="card-body">
-                <form method="post" action="{{ url_for('login') }}">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                <div class="tab-content" id="auth-tabs-content">
+                    <!-- Login Tab -->
+                    <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                        <form method="post" action="{{ url_for('login') }}">
+                            <input type="hidden" name="form_type" value="login">
+                            <div class="mb-3">
+                                <label for="login-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="login-email" name="email" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                        <div class="form-text">If you have an account, we'll log you in. Otherwise, we'll create one for you.</div>
+                    
+                    <!-- Register Tab -->
+                    <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+                        <form method="post" action="{{ url_for('login') }}">
+                            <input type="hidden" name="form_type" value="register">
+                            <div class="mb-3">
+                                <label for="register-name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="register-name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="register-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="register-email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="register-phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="register-phone" name="phone" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="register-zip-code" class="form-label">ZIP Code</label>
+                                <input type="text" class="form-control" id="register-zip-code" name="zip_code" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="register-insurance" class="form-label">Insurance Provider</label>
+                                <input type="text" class="form-control" id="register-insurance" name="insurance" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Phone (optional)</label>
-                        <input type="tel" class="form-control" id="phone" name="phone">
-                    </div>
-                    <div class="mb-3">
-                        <label for="zip_code" class="form-label">ZIP Code (optional)</label>
-                        <input type="text" class="form-control" id="zip_code" name="zip_code">
-                    </div>
-                    <div class="mb-3">
-                        <label for="insurance" class="form-label">Insurance Provider (optional)</label>
-                        <input type="text" class="form-control" id="insurance" name="insurance">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Continue</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>

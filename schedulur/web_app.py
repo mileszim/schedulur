@@ -40,35 +40,52 @@ def index():
 def login():
     """User login/registration page"""
     if request.method == 'POST':
-        # For simplicity, create a new user if they don't exist
-        name = request.form['name']
+        form_type = request.form.get('form_type', '')
         email = request.form['email']
         
         # Look for existing user by email
         users = user_service.list_users()
         existing_user = next((u for u in users if u.email == email), None)
         
-        if existing_user:
-            # Use existing user
-            user = existing_user
-            flash(f"Welcome back, {user.name}!", "success")
+        if form_type == 'login':
+            # Login flow
+            if existing_user:
+                # Use existing user
+                user = existing_user
+                flash(f"Welcome back, {user.name}!", "success")
+                session['user_id'] = user.id
+                return redirect(url_for('profile'))
+            else:
+                # User not found
+                flash("Email not found. Please register first.", "warning")
+                return render_template('login.html')
+                
+        elif form_type == 'register':
+            # Registration flow
+            if existing_user:
+                # User already exists
+                flash("An account with this email already exists. Please login instead.", "warning")
+                return render_template('login.html')
+            else:
+                # Create new user
+                name = request.form['name']
+                user = User(
+                    id=str(uuid.uuid4()),
+                    name=name,
+                    email=email,
+                    phone=request.form.get('phone', ''),
+                    zip_code=request.form.get('zip_code', ''),
+                    insurance_provider=request.form.get('insurance', ''),
+                    calendar_provider='mock'  # Default to mock calendar
+                )
+                user = user_service.create_user(user)
+                flash(f"Account created successfully for {user.name}!", "success")
+                session['user_id'] = user.id
+                return redirect(url_for('profile'))
         else:
-            # Create new user
-            user = User(
-                id=str(uuid.uuid4()),
-                name=name,
-                email=email,
-                phone=request.form.get('phone', ''),
-                zip_code=request.form.get('zip_code', ''),
-                insurance_provider=request.form.get('insurance', ''),
-                calendar_provider='mock'  # Default to mock calendar
-            )
-            user = user_service.create_user(user)
-            flash(f"Account created successfully for {user.name}!", "success")
-        
-        # Set user in session
-        session['user_id'] = user.id
-        return redirect(url_for('profile'))
+            # Invalid form type
+            flash("Invalid form submission.", "danger")
+            return render_template('login.html')
     
     return render_template('login.html')
 
