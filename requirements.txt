@@ -7,3 +7,4 @@ flask==2.3.3
 retell-sdk==4.27.0
 requests==2.32.3
 gunicorn==23.0.0
+dotenv==0.9.9
