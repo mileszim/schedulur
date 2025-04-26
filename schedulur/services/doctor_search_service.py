@@ -7,6 +7,7 @@ from datetime import datetime
 
 from schedulur.models.doctor import Doctor
 from schedulur.models.user import User
+from schedulur.services.api_integration import ProviderDirectoryAPI
 
 class DoctorSearchService:
     """Service for searching for doctors"""
@@ -16,6 +17,12 @@ class DoctorSearchService:
         self.api_key = api_key or os.environ.get('HEALTHCARE_API_KEY')
         self.mock_data_file = os.path.join(os.path.dirname(__file__), "../data/mock_doctors.json")
         self._ensure_mock_data()
+        
+        # Initialize the API integration
+        self.api = ProviderDirectoryAPI()
+        
+        # Flag to use real API or mock data
+        self.use_real_api = os.environ.get('USE_REAL_API', 'false').lower() == 'true'
         
     def _ensure_mock_data(self):
         """Create mock doctor data if it doesn't exist"""
@@ -100,8 +107,73 @@ class DoctorSearchService:
         Returns:
             List of matching doctors
         """
-        # In a real implementation, this would call an external API
-        # For now, use mock data
+        try:
+            # Check if we should use the real API
+            if self.use_real_api:
+                return self._search_doctors_api(specialization, insurance, zip_code, max_distance)
+            else:
+                return self._search_doctors_mock(specialization, insurance, zip_code, max_distance)
+        except Exception as e:
+            print(f"Error searching for doctors: {e}")
+            return []
+            
+    def _search_doctors_api(self, 
+                           specialization: str, 
+                           insurance: Optional[str] = None,
+                           zip_code: Optional[str] = None,
+                           max_distance: Optional[int] = 25) -> List[Doctor]:
+        """Search for doctors using the real API"""
+        try:
+            # Search doctors via API
+            results = self.api.search_doctors(
+                specialization=specialization,
+                zip_code=zip_code,
+                radius_miles=max_distance
+            )
+            
+            if not results:
+                print("No results from API search")
+                return []
+                
+            # Convert API results to Doctor objects
+            doctors = []
+            for doctor_data in results:
+                # Format the data for our model
+                formatted_data = self.api.doctor_to_model_format(doctor_data)
+                
+                # Add insurance info if we have it
+                if insurance:
+                    formatted_data["accepted_insurance"] = [insurance]
+                
+                # Add mock earliest available slot for now
+                # In a real implementation, this would come from a scheduling API
+                i = len(doctors)
+                formatted_data["earliest_available_slot"] = (datetime.now().replace(hour=9, minute=0) + 
+                                          formatted_data["appointment_duration"] * (i % 3)).strftime("%Y-%m-%d %H:%M")
+                
+                # Calculate approximate distance if we have coordinates
+                if "latitude" in formatted_data and "longitude" in formatted_data and formatted_data["latitude"] and formatted_data["longitude"]:
+                    # In a real implementation, we would use a proper distance calculation
+                    formatted_data["distance_miles"] = (i * 2) % max_distance
+                
+                # Create a Doctor object
+                doctor = Doctor(**formatted_data)
+                doctors.append(doctor)
+            
+            # Sort by earliest available slot (most favorable) and distance (closest)
+            doctors.sort(key=lambda d: (d.earliest_available_slot or "", d.distance_miles or float('inf')))
+            
+            return doctors
+        except Exception as e:
+            print(f"Error in API doctor search: {e}")
+            return []
+            
+    def _search_doctors_mock(self, 
+                            specialization: str, 
+                            insurance: Optional[str] = None,
+                            zip_code: Optional[str] = None,
+                            max_distance: Optional[int] = 25) -> List[Doctor]:
+        """Search for doctors using mock data"""
         try:
             with open(self.mock_data_file, 'r') as f:
                 doctor_data = json.load(f)
@@ -136,7 +208,7 @@ class DoctorSearchService:
             return doctors
         
         except Exception as e:
-            print(f"Error searching for doctors: {e}")
+            print(f"Error in mock doctor search: {e}")
             return []
     
     def search_with_claude(self, query: str) -> List[Doctor]:
@@ -205,6 +277,16 @@ class DoctorSearchService:
             if any(keyword in query.lower() for keyword in keywords):
                 urgency_level = level
                 break
+        
+        # Get location if we have a zip code
+        location_text = None
+        if not zip_code:
+            # Look for location mentions
+            locations = ["san francisco", "los angeles", "new york", "chicago", "boston", "seattle", "miami"]
+            for loc in locations:
+                if loc in query.lower():
+                    location_text = loc
+                    break
         
         # Use the structured search with the extracted parameters
         return self.search_doctors(
