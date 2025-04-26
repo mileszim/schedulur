@@ -20,38 +20,24 @@
                 {% else %}
                 <h6 class="mt-4">Next Steps:</h6>
                 <div class="list-group">
-                    <a href="{{ url_for('calendar_connect') }}" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6>1. Connect to Calendar</h6>
-                            <span class="badge bg-primary rounded-pill">Step 1</span>
-                        </div>
-                        <p class="mb-1">Link to your Google Calendar or Outlook</p>
-                    </a>
-                    <a href="{{ url_for('availability') }}" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6>2. Set Availability</h6>
-                            <span class="badge bg-primary rounded-pill">Step 2</span>
-                        </div>
-                        <p class="mb-1">Specify your preferred days and times for appointments</p>
-                    </a>
                     <a href="{{ url_for('search') }}" class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between">
-                            <h6>3. Find Doctors</h6>
-                            <span class="badge bg-primary rounded-pill">Step 3</span>
+                            <h6>1. Find Doctors</h6>
+                            <span class="badge bg-primary rounded-pill">Step 1</span>
                         </div>
                         <p class="mb-1">Search for doctors based on specialty, insurance, etc.</p>
                     </a>
                     <a href="{{ url_for('approved_doctors') }}" class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between">
-                            <h6>4. Approve Doctors</h6>
-                            <span class="badge bg-primary rounded-pill">Step 4</span>
+                            <h6>2. Approve Doctors</h6>
+                            <span class="badge bg-primary rounded-pill">Step 2</span>
                         </div>
                         <p class="mb-1">Choose which doctors you'd like to schedule with</p>
                     </a>
                     <a href="{{ url_for('schedule') }}" class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between">
-                            <h6>5. Schedule Appointment</h6>
-                            <span class="badge bg-primary rounded-pill">Step 5</span>
+                            <h6>3. Schedule Appointment</h6>
+                            <span class="badge bg-primary rounded-pill">Step 3</span>
                         </div>
                         <p class="mb-1">Book appointments with approved doctors</p>
                     </a>
@@ -65,12 +51,12 @@
             <div class="card-body">
                 <h5 class="card-title">Features</h5>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Connect to your calendar</li>
-                    <li class="list-group-item">Set your availability</li>
-                    <li class="list-group-item">Search for doctors</li>
+                    <li class="list-group-item">Set your scheduling preferences</li>
+                    <li class="list-group-item">Search for doctors by specialty</li>
                     <li class="list-group-item">Automated appointment booking</li>
                     <li class="list-group-item">Store call transcripts</li>
-                    <li class="list-group-item">Add appointments to your calendar</li>
+                    <li class="list-group-item">Track your upcoming appointments</li>
+                    <li class="list-group-item">Manage appointment details</li>
                 </ul>
             </div>
         </div>

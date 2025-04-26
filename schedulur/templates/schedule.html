@@ -21,6 +21,86 @@
                         <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
                         <div class="form-text">e.g., "Annual checkup", "Heart consultation", etc.</div>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">When would you prefer your appointment?</label>
+                        
+                        <div class="mb-2">
+                            <label class="form-label">Preferred timeframe:</label>
+                            <select class="form-select" name="timeframe" required>
+                                <option value="asap">As soon as possible</option>
+                                <option value="1week">Within 1 week</option>
+                                <option value="2weeks" selected>Within 2 weeks</option>
+                                <option value="1month">Within a month</option>
+                                <option value="flexible">I'm flexible</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Preferred days:</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="day_0" id="day_0" value="1">
+                                        <label class="form-check-label" for="day_0">Monday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="day_1" id="day_1" value="1">
+                                        <label class="form-check-label" for="day_1">Tuesday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="day_2" id="day_2" value="1">
+                                        <label class="form-check-label" for="day_2">Wednesday</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="day_3" id="day_3" value="1">
+                                        <label class="form-check-label" for="day_3">Thursday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="day_4" id="day_4" value="1">
+                                        <label class="form-check-label" for="day_4">Friday</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="day_5" id="day_5" value="1">
+                                        <label class="form-check-label" for="day_5">Saturday</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="day_6" id="day_6" value="1">
+                                        <label class="form-check-label" for="day_6">Sunday</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label">Preferred time of day:</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="time_morning" id="time_morning" value="1">
+                                        <label class="form-check-label" for="time_morning">Morning (8am-12pm)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="time_afternoon" id="time_afternoon" value="1">
+                                        <label class="form-check-label" for="time_afternoon">Afternoon (12pm-5pm)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="time_evening" id="time_evening" value="1">
+                                        <label class="form-check-label" for="time_evening">Evening (5pm-8pm)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">Schedule Appointment</button>
                 </form>
             </div>
@@ -67,7 +147,7 @@
                 <p class="mb-1"><strong>Reason:</strong> {{ appointment.reason }}</p>
                 
                 <div class="alert alert-success mt-3">
-                    <i class="bi bi-calendar-check"></i> Added to your {{ user.calendar_provider.title() }} calendar
+                    <i class="bi bi-calendar-check"></i> Appointment confirmed
                 </div>
                 
                 <div class="mt-3">

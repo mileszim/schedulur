@@ -39,11 +39,10 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Connected Services</h5>
-                <p>Calendar: {{ user.calendar_provider.title() }}</p>
+                <h5 class="card-title">Scheduling Status</h5>
+                <p>Ready to schedule appointments!</p>
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('calendar_connect') }}" class="btn btn-outline-primary">Change Calendar</a>
-                    <a href="{{ url_for('availability') }}" class="btn btn-outline-secondary">Set Availability</a>
+                    <a href="{{ url_for('schedule') }}" class="btn btn-outline-primary">Schedule Appointment</a>
                 </div>
             </div>
         </div>

@@ -16,9 +16,8 @@ class User(BaseModel):
     insurance_provider: Optional[str] = None
     insurance_id: Optional[str] = None
     
-    # Calendar information
-    calendar_provider: Optional[str] = "google"  # "google" or "outlook"
-    calendar_id: Optional[str] = None
+    # Scheduling preferences
+    scheduling_preferences: Optional[Dict] = None
     
     # User preferences
     preferred_contact_method: str = "email"  # email, sms, call

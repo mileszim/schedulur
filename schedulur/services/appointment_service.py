@@ -18,7 +18,6 @@ class AppointmentService:
         self.data_file = data_file or os.path.join(os.path.dirname(__file__), "../data/appointments.json")
         self.appointments = {}
         self.doctor_service = DoctorService()
-        self.calendar_service = CalendarService()
         self.communication_service = CommunicationService()
         self.user_id = user_id
         self.load_appointments()
@@ -71,12 +70,6 @@ class AppointmentService:
             print(f"Doctor not found: {appointment.doctor_id}")
             return None
         
-        # Check if the slot is available in user's calendar
-        if not self.calendar_service.check_availability(appointment.start_time, 
-                                                     (appointment.end_time - appointment.start_time).seconds // 60):
-            print(f"Calendar slot not available: {appointment.start_time} - {appointment.end_time}")
-            return None
-        
         # Create the appointment
         if not appointment.id:
             appointment.id = str(uuid.uuid4())
@@ -90,33 +83,6 @@ class AppointmentService:
         self.save_appointments()
         
         return appointment
-    
-    def add_to_calendar(self, appointment_id: str) -> bool:
-        """Add an appointment to the user's calendar"""
-        appointment = self.get_appointment(appointment_id)
-        if not appointment:
-            return False
-        
-        doctor = self.doctor_service.get_doctor(appointment.doctor_id)
-        if not doctor:
-            return False
-        
-        # Create calendar event
-        event = self.calendar_service.schedule_appointment(
-            f"Appointment with {doctor.name}",
-            appointment.start_time,
-            appointment.end_time,
-            f"Appointment with {doctor.name} ({doctor.specialization}). Phone: {doctor.phone}",
-            doctor.address
-        )
-        
-        if event and 'id' in event:
-            # Update appointment with calendar event ID
-            appointment.calendar_event_id = event['id']
-            self.update_appointment(appointment_id, appointment)
-            return True
-        
-        return False
     
     def get_appointment(self, appointment_id: str) -> Optional[Appointment]:
         """Get an appointment by ID"""
@@ -136,11 +102,6 @@ class AppointmentService:
         appointment = self.get_appointment(appointment_id)
         if appointment:
             appointment.status = AppointmentStatus.CANCELLED
-            
-            # Remove from calendar if added
-            if appointment.calendar_event_id:
-                self.calendar_service.cancel_appointment(appointment.calendar_event_id)
-            
             self.update_appointment(appointment_id, appointment)
             return True
         return False
@@ -149,10 +110,6 @@ class AppointmentService:
         """Delete an appointment"""
         appointment = self.get_appointment(appointment_id)
         if appointment:
-            # Remove from calendar if added
-            if appointment.calendar_event_id:
-                self.calendar_service.cancel_appointment(appointment.calendar_event_id)
-                
             del self.appointments[appointment_id]
             self.save_appointments()
             return True
@@ -176,7 +133,7 @@ class AppointmentService:
                            doctor: Doctor, 
                            user: User,
                            reason: str,
-                           preferred_date: Optional[datetime] = None) -> Tuple[Optional[Appointment], Dict]:
+                           scheduling_preferences: Optional[Dict] = None) -> Tuple[Optional[Appointment], Dict]:
         """
         Schedule an appointment with a doctor by calling their office
         
@@ -184,7 +141,7 @@ class AppointmentService:
             doctor: Doctor to schedule with
             user: User to schedule for
             reason: Reason for the appointment
-            preferred_date: Preferred appointment date/time
+            scheduling_preferences: User's scheduling preferences
             
         Returns:
             Tuple of (appointment, call_details)
@@ -193,35 +150,45 @@ class AppointmentService:
             print(f"Cannot schedule appointment - doctor has no phone number")
             return None, {"error": "Doctor has no phone number"}
         
-        # Get user's available dates
-        if preferred_date:
-            # Use the preferred date and 2 more days after that
+        # Get scheduling preferences
+        timeframe = scheduling_preferences.get('timeframe', '2weeks') if scheduling_preferences else '2weeks'
+        preferred_days = scheduling_preferences.get('preferred_days', []) if scheduling_preferences else []
+        preferred_times = scheduling_preferences.get('preferred_times', []) if scheduling_preferences else []
+        
+        # Determine the date range based on timeframe
+        today = datetime.now()
+        if timeframe == 'asap':
+            days_range = 7
+        elif timeframe == '1week':
+            days_range = 7
+        elif timeframe == '2weeks':
+            days_range = 14
+        elif timeframe == '1month':
+            days_range = 30
+        else:  # flexible
+            days_range = 30
+        
+        # Find dates that match preferred days
+        preferred_dates = []
+        current_date = today
+        end_date = today + timedelta(days=days_range)
+        
+        # If no specific days are provided, use all days
+        if not preferred_days:
+            preferred_days = list(range(7))  # 0-6 for Monday-Sunday
+        
+        # Collect dates that match the preferred days
+        while current_date < end_date:
+            if current_date.weekday() in preferred_days:
+                preferred_dates.append(current_date.strftime("%Y-%m-%d"))
+            current_date += timedelta(days=1)
+        
+        # Ensure we have at least some dates
+        if not preferred_dates:
             preferred_dates = [
-                preferred_date.strftime("%Y-%m-%d"),
-                (preferred_date + timedelta(days=1)).strftime("%Y-%m-%d"),
-                (preferred_date + timedelta(days=2)).strftime("%Y-%m-%d")
-            ]
-        else:
-            # Get next 5 available dates from user's calendar
-            available_slots = self.calendar_service.find_available_slots(
-                datetime.now(),
-                days=14,
-                duration_minutes=doctor.appointment_duration
-            )
-            
-            # Group by date and get first 5 unique dates
-            dates = []
-            for slot in available_slots:
-                date_str = slot['start'].strftime("%Y-%m-%d")
-                if date_str not in dates:
-                    dates.append(date_str)
-                if len(dates) >= 5:
-                    break
-            
-            preferred_dates = dates if dates else [
-                datetime.now().strftime("%Y-%m-%d"),
-                (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
-                (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d")
+                today.strftime("%Y-%m-%d"),
+                (today + timedelta(days=1)).strftime("%Y-%m-%d"),
+                (today + timedelta(days=2)).strftime("%Y-%m-%d")
             ]
         
         # Call the doctor's office
@@ -232,22 +199,44 @@ class AppointmentService:
             patient_name=user.name,
             insurance=insurance,
             reason=reason,
-            preferred_dates=preferred_dates
+            preferred_dates=preferred_dates,
+            preferred_times=preferred_times
         )
         
         # In a real implementation, we would parse the call transcript
         # For this mock, we'll just create an appointment for a fixed time
-        # based on the mock transcript
+        # that tries to respect the user's preferences
         
-        # Extract appointment details from transcript
-        # For the mock, we know the appointment is always on "next Tuesday at 10:30 AM"
+        # Find a date that matches user's preferred day
         today = datetime.now()
+        
+        # Default to Tuesday at 10:30 AM if no preferences
         days_until_tuesday = (1 - today.weekday()) % 7  # 1 = Tuesday
         if days_until_tuesday == 0:
             days_until_tuesday = 7  # Next Tuesday, not today
         
         appointment_date = today + timedelta(days=days_until_tuesday)
-        appointment_time = appointment_date.replace(hour=10, minute=30, second=0, microsecond=0)
+        
+        # Check if we should use a different day based on user preferences
+        if preferred_days and days_until_tuesday not in preferred_days:
+            # Find the next preferred day
+            for days_ahead in range(1, days_range):
+                day = (today + timedelta(days=days_ahead)).weekday()
+                if day in preferred_days:
+                    appointment_date = today + timedelta(days=days_ahead)
+                    break
+        
+        # Set time based on preferred time of day
+        if 'morning' in preferred_times:
+            hour, minute = 10, 30
+        elif 'afternoon' in preferred_times:
+            hour, minute = 14, 0  # 2:00 PM
+        elif 'evening' in preferred_times:
+            hour, minute = 17, 0  # 5:00 PM
+        else:
+            hour, minute = 10, 30  # Default to 10:30 AM
+        
+        appointment_time = appointment_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
         
         # Create the appointment
         new_appointment = Appointment(
@@ -264,10 +253,6 @@ class AppointmentService:
         
         # Save the appointment
         created_appointment = self.create_appointment(new_appointment)
-        
-        # Add to calendar
-        if created_appointment:
-            self.add_to_calendar(created_appointment.id)
         
         return created_appointment, call_result
     

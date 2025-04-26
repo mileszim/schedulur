@@ -2,13 +2,12 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from schedulur.models.user import User, UserAvailability
+from schedulur.models.user import User
 from schedulur.models.doctor import Doctor
 from schedulur.services.user_service import UserService
 from schedulur.services.doctor_service import DoctorService
 from schedulur.services.doctor_search_service import DoctorSearchService
 from schedulur.services.appointment_service import AppointmentService
-from schedulur.integrations.calendar import CalendarService
 
 # Create Flask app
 app = Flask(__name__)
@@ -75,8 +74,7 @@ def login():
                     email=email,
                     phone=request.form.get('phone', ''),
                     zip_code=request.form.get('zip_code', ''),
-                    insurance_provider=request.form.get('insurance', ''),
-                    calendar_provider='mock'  # Default to mock calendar
+                    insurance_provider=request.form.get('insurance', '')
                 )
                 user = user_service.create_user(user)
                 flash(f"Account created successfully for {user.name}!", "success")
@@ -121,123 +119,6 @@ def profile():
     
     return render_template('profile.html', user=user)
 
-@app.route('/calendar-connect', methods=['GET', 'POST'])
-def calendar_connect():
-    """Connect to calendar"""
-    # Check if user is logged in
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Please log in first.", "warning")
-        return redirect(url_for('login'))
-    
-    user = user_service.get_user(user_id)
-    
-    if request.method == 'POST':
-        # Update calendar provider
-        provider = request.form['provider']
-        user.calendar_provider = provider
-        user = user_service.update_user(user_id, user)
-        
-        flash(f"Connected to {provider.title()} Calendar successfully!", "success")
-        return redirect(url_for('availability'))
-    
-    return render_template('calendar_connect.html', user=user)
-
-@app.route('/availability', methods=['GET', 'POST'])
-def availability():
-    """Set user availability"""
-    # Check if user is logged in
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Please log in first.", "warning")
-        return redirect(url_for('login'))
-    
-    user = user_service.get_user(user_id)
-    
-    if request.method == 'POST':
-        # Initialize availability if not set
-        if not user.availability:
-            user.availability = UserAvailability()
-        
-        # Clear existing availability
-        user.availability.time_slots = []
-        
-        # Process form data
-        for day in range(7):  # 0-6 for Monday to Sunday
-            if f'day_{day}' in request.form:
-                start = request.form.get(f'start_{day}', '09:00')
-                end = request.form.get(f'end_{day}', '17:00')
-                
-                # Add time slot
-                user.availability.time_slots.append({
-                    'day': day,
-                    'start': start,
-                    'end': end
-                })
-        
-        # Update user
-        user = user_service.update_user(user_id, user)
-        flash("Availability updated successfully!", "success")
-        
-        return redirect(url_for('calendar_slots'))
-    
-    # Initialize form values for template
-    day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    day_values = {}
-    
-    if user.availability and user.availability.time_slots:
-        for slot in user.availability.time_slots:
-            day = slot.get('day', 0)
-            day_values[day] = {
-                'enabled': True,
-                'start': slot.get('start', '09:00'),
-                'end': slot.get('end', '17:00')
-            }
-    
-    return render_template('availability.html', user=user, day_names=day_names, day_values=day_values)
-
-@app.route('/calendar-slots')
-def calendar_slots():
-    """View available calendar slots"""
-    # Check if user is logged in
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("Please log in first.", "warning")
-        return redirect(url_for('login'))
-    
-    user = user_service.get_user(user_id)
-    
-    # Get calendar service
-    calendar_service = CalendarService(provider_type=user.calendar_provider, user_id=user_id)
-    
-    # Get availability from user profile
-    time_preferences = None
-    if user.availability and user.availability.time_slots:
-        time_preferences = user.availability.time_slots
-    
-    # Find available slots
-    days = request.args.get('days', 7, type=int)
-    slots = calendar_service.find_available_slots(
-        start_date=datetime.now(),
-        days=days,
-        time_preferences=time_preferences
-    )
-    
-    # Group slots by date
-    dates = {}
-    for slot in slots:
-        date_str = slot['start'].strftime('%Y-%m-%d')
-        if date_str not in dates:
-            dates[date_str] = []
-        
-        time_str = f"{slot['start'].strftime('%H:%M')} - {slot['end'].strftime('%H:%M')}"
-        dates[date_str].append({
-            'start': slot['start'],
-            'end': slot['end'],
-            'time_str': time_str
-        })
-    
-    return render_template('calendar_slots.html', user=user, dates=dates, days=days)
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
@@ -346,6 +227,35 @@ def schedule():
         # Get reason for appointment
         reason = request.form['reason']
         
+        # Get scheduling preferences
+        timeframe = request.form.get('timeframe')
+        
+        # Get preferred days
+        preferred_days = []
+        for day in range(7):  # 0-6 for Monday to Sunday
+            if f'day_{day}' in request.form:
+                preferred_days.append(day)
+        
+        # Get preferred times
+        preferred_times = []
+        if 'time_morning' in request.form:
+            preferred_times.append('morning')
+        if 'time_afternoon' in request.form:
+            preferred_times.append('afternoon')
+        if 'time_evening' in request.form:
+            preferred_times.append('evening')
+        
+        # Store scheduling preferences
+        scheduling_preferences = {
+            'timeframe': timeframe,
+            'preferred_days': preferred_days,
+            'preferred_times': preferred_times
+        }
+        
+        # Update user with scheduling preferences
+        user.scheduling_preferences = scheduling_preferences
+        user = user_service.update_user(user_id, user)
+        
         # Get approved doctors
         approved_doctors = doctor_service.get_approved_doctors()
         
@@ -362,7 +272,8 @@ def schedule():
         appointment, call_details = appointment_service.schedule_with_doctor(
             doctor=doctor,
             user=user,
-            reason=reason
+            reason=reason,
+            scheduling_preferences=scheduling_preferences
         )
         
         if appointment:

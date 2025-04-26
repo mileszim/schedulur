@@ -87,8 +87,23 @@ class MockCommunicationProvider(CommunicationProvider):
         
         receptionist_name = "Sarah"
         doctor_name = "Dr. Smith"
+        time_preference = "morning"
+        
         if "Dr." in message:
             doctor_name = message.split("Dr.")[1].split()[0]
+        
+        # Try to extract time preference from message
+        if "morning" in message.lower():
+            time_preference = "morning"
+            selected_slot = "10:30 AM"
+        elif "afternoon" in message.lower():
+            time_preference = "afternoon"
+            selected_slot = "2:15 PM"
+        elif "evening" in message.lower():
+            time_preference = "evening"
+            selected_slot = "5:45 PM"
+        else:
+            selected_slot = "10:30 AM"
         
         return f"""
 SCHEDULUR: Hello, I'm calling to schedule an appointment with {doctor_name}. This is an automated call from Schedulur, a medical appointment scheduling service.
@@ -105,15 +120,19 @@ RECEPTIONIST: Okay, let me check our availability. What's the reason for the vis
 
 SCHEDULUR: It's for a regular checkup and consultation. The patient has {message.split("appointment with")[1].split(".")[0]} if relevant.
 
-RECEPTIONIST: I see. We have an opening next Tuesday at 10:30 AM or Thursday at 2:15 PM. Which would work better?
+RECEPTIONIST: I see. Do you have any preference for the time of day?
 
-SCHEDULUR: The Tuesday 10:30 AM slot would be perfect. Can we book that time?
+SCHEDULUR: Yes, the patient would prefer to come in during the {time_preference}.
+
+RECEPTIONIST: I understand. We have an opening next Tuesday at {selected_slot}. Would that work?
+
+SCHEDULUR: That would be perfect. Can we book that time?
 
 RECEPTIONIST: Yes, I can schedule that. Does the patient have insurance?
 
 SCHEDULUR: Yes, they have BlueCross BlueShield. Policy number BCX123456789.
 
-RECEPTIONIST: Great, we accept that insurance. I'll schedule John Doe for Tuesday at 10:30 AM with {doctor_name}. The appointment will be approximately 30 minutes. Please arrive 15 minutes early to complete paperwork if this is their first visit. Would you like me to send an email confirmation?
+RECEPTIONIST: Great, we accept that insurance. I'll schedule John Doe for Tuesday at {selected_slot} with {doctor_name}. The appointment will be approximately 30 minutes. Please arrive 15 minutes early to complete paperwork if this is their first visit. Would you like me to send an email confirmation?
 
 SCHEDULUR: Yes, please send a confirmation to johndoe@example.com.
 
@@ -203,7 +222,8 @@ class CommunicationService:
                                   patient_name: str,
                                   insurance: str,
                                   reason: str,
-                                  preferred_dates: List[str]) -> Dict:
+                                  preferred_dates: List[str],
+                                  preferred_times: List[str] = None) -> Dict:
         """
         Call a doctor's office to schedule an appointment
         
@@ -214,14 +234,27 @@ class CommunicationService:
             insurance: Patient's insurance
             reason: Reason for the appointment
             preferred_dates: List of preferred dates in order
+            preferred_times: List of preferred times of day (morning, afternoon, evening)
             
         Returns:
             Call details including transcript
         """
+        # Format preferred times for the call script
+        time_preferences = ""
+        if preferred_times:
+            time_labels = {
+                'morning': 'morning (8am-12pm)',
+                'afternoon': 'afternoon (12pm-5pm)',
+                'evening': 'evening (5pm-8pm)'
+            }
+            formatted_times = [time_labels.get(t, t) for t in preferred_times]
+            if formatted_times:
+                time_preferences = f" during the {', '.join(formatted_times)}"
+        
         # Prepare the call script
         message = f"""Hello, I'm calling to schedule an appointment with Dr. {doctor_name} for {patient_name}.
 The patient has {insurance} insurance and needs to be seen for {reason}.
-They would prefer an appointment on one of these dates: {', '.join(preferred_dates)}.
+They would prefer an appointment on one of these dates: {', '.join(preferred_dates)}{time_preferences}.
 Please let me know what availability you have."""
         
         # Make the call
