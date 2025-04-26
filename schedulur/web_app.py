@@ -349,5 +349,24 @@ def cancel_appointment(appointment_id):
     
     return redirect(url_for('appointments'))
 
+@app.route('/api/retell_webook', methods=['POST'])
+def retell_webhook():
+    """Receive a webhook from Retell"""
+    post_data = request.get_json()
+    if not post_data:
+        return jsonify({"error": "Invalid data"}), 400
+    print("Received webhook data:", post_data)
+    
+    if post_data["event"] == "call_started":
+        print("Call started event", post_data["call"]["call_id"])
+    elif post_data["event"] == "call_ended":
+        print("Call ended event", post_data["call"]["call_id"])
+    elif post_data["event"] == "call_analyzed":
+        print("Call analyzed event", post_data["call"]["call_id"])
+    else:
+        print("Unknown event", post_data["event"])
+
+    return jsonify({"status": "success"}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)
