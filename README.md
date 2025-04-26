@@ -4,11 +4,16 @@ A personal medical appointment scheduling system that helps you find and book ap
 
 ## Features
 
-- Store and manage doctor information, including specialization and accepted insurance
-- Integration with your personal calendar to find available time slots
-- Automated appointment requests via email, SMS, or phone calls
+- Connect to your personal calendar (Google Calendar, Outlook, or mock for testing)
+- Set your availability for medical appointments
+- Search for doctors based on specialty, insurance, location, and urgency
+- Get a list of matching doctors with their availability
+- Approve doctors you want to schedule with
+- Automated appointment booking via simulated phone calls
+- Store call transcripts for reference
+- Add confirmed appointments to your calendar
 - Command-line interface for easy interaction
-- Save all data locally for privacy
+- All data stored locally for privacy
 
 ## Installation
 
@@ -21,48 +26,89 @@ cd schedulur
 pip install -e .
 ```
 
+## User Flow
+
+Schedulur follows this appointment booking workflow:
+
+1. **Connect to calendar** - Link to your Google Calendar or Outlook
+2. **Specify availability** - Set your preferred appointment days and times
+3. **Search for doctors** - Find doctors based on specialty, insurance, etc.
+4. **Approve doctors** - Select which doctors to contact
+5. **Schedule appointment** - Make automated calls to book appointments
+6. **View confirmed appointment** - See appointment details with call transcript
+7. **Add to calendar** - Appointment is added to your calendar
+
 ## Usage
 
-### Adding a doctor
+### Setting up your profile
 
 ```bash
-schedulur doctor add --name "Dr. Alice Smith" --specialization "Cardiologist" \
-    --location "123 Medical Center, New York" --phone "555-123-4567" \
-    --email "alice@hospital.com" --insurance "BlueCross" "Medicare"
+# Create a user profile
+schedulur user create --name "Your Name" --email "your.email@example.com" --phone "555-123-4567" --zip "94102" --insurance "Blue Cross"
+
+# Show your profile
+schedulur user show
+
+# Set your availability (0=Monday, 6=Sunday)
+schedulur user availability --day 1 --start "09:00" --end "12:00"
+schedulur user availability --day 3 --start "14:00" --end "17:00"
 ```
 
-### Viewing your doctors
+### Connecting to calendar
 
 ```bash
-# List all doctors
-schedulur doctor list
+# Connect to your calendar
+schedulur calendar connect --provider google
 
-# Filter by specialization
-schedulur doctor list --specialization "Dermatologist"
-
-# Filter by insurance
-schedulur doctor list --insurance "Medicare"
-```
-
-### Scheduling an appointment
-
-```bash
-# Check your available time slots first
+# View your available slots
 schedulur calendar slots --days 14
-
-# Schedule an appointment with a doctor
-schedulur appointment schedule <doctor_id> --date 2025-05-01 --time 10:30 --notes "Annual checkup"
 ```
 
-### Sending an appointment request
+### Searching for doctors
 
 ```bash
-# Send an email request to the doctor
-schedulur appointment request <appointment_id> --method email
+# Search by criteria
+schedulur search doctor --specialization "Cardiology" --insurance "Blue Cross" --zip "94102" --distance 25 --urgency 3
 
-# Or make a phone call
-schedulur appointment request <appointment_id> --method call
+# Or use natural language search
+schedulur search query "I need a heart doctor who accepts Blue Cross within 10 miles of 94102, it's somewhat urgent"
 ```
+
+### Managing appointments
+
+```bash
+# Approve a doctor to call
+schedulur appointment approve <doctor_id>
+
+# Schedule appointments with approved doctors
+schedulur appointment schedule --reason "Annual heart checkup"
+
+# List your appointments
+schedulur appointment list
+
+# View appointment details with call transcript
+schedulur appointment show <appointment_id>
+
+# Cancel an appointment
+schedulur appointment cancel <appointment_id>
+```
+
+## Demo
+
+A demo script is included to showcase the workflow:
+
+```bash
+python -m schedulur.cli_demo
+```
+
+This script will:
+1. Create a sample user profile
+2. Set availability
+3. Connect to a mock calendar
+4. Search for doctors
+5. Approve a doctor
+6. Schedule an appointment
+7. Show the appointment details with call transcript
 
 ## Calendar Integration
 
@@ -89,19 +135,9 @@ To integrate with Google Calendar or Outlook, you need to set up credentials:
 
 ## Communication Integration
 
-To send emails, SMS, or make calls:
+For making calls to doctors' offices:
 
-### Email
-
-Set these environment variables:
-```bash
-export SMTP_SERVER="smtp.gmail.com"
-export SMTP_PORT=587
-export SMTP_USERNAME="your_email@gmail.com"
-export SMTP_PASSWORD="your_app_password"
-```
-
-### Twilio (for SMS and Calls)
+### Twilio (for Voice Calls)
 
 Sign up for Twilio and set these environment variables:
 ```bash

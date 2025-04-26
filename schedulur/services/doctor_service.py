@@ -105,3 +105,15 @@ class DoctorService:
     def filter_doctors_by_specialization(self, specialization: str) -> List[Doctor]:
         """Filter doctors by specialization"""
         return [d for d in self.doctors.values() if specialization.lower() in d.specialization.lower()]
+    
+    def get_approved_doctors(self) -> List[Doctor]:
+        """Get doctors that have been approved by the user"""
+        return [d for d in self.doctors.values() if d.user_approval is True]
+    
+    def get_rejected_doctors(self) -> List[Doctor]:
+        """Get doctors that have been rejected by the user"""
+        return [d for d in self.doctors.values() if d.user_approval is False]
+    
+    def get_pending_doctors(self) -> List[Doctor]:
+        """Get doctors that haven't been approved or rejected yet"""
+        return [d for d in self.doctors.values() if d.user_approval is None]

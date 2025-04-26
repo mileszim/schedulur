@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Set Availability - Schedulur{% endblock %}
+
+{% block header %}Set Your Availability{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">When are you available for appointments?</h5>
+                <p class="card-text">
+                    Select the days and times when you're typically available for medical appointments.
+                    This helps us find the best times to schedule with doctors.
+                </p>
+                
+                <form method="post" action="{{ url_for('availability') }}">
+                    {% for i in range(7) %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input class="form-check-input day-checkbox" type="checkbox" id="day_{{ i }}" name="day_{{ i }}" 
+                                       data-target="time-slot-{{ i }}" {% if i in day_values and day_values[i].enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="day_{{ i }}">
+                                    <strong>{{ day_names[i] }}</strong>
+                                </label>
+                            </div>
+                            
+                            <div class="row time-slot mt-3" id="time-slot-{{ i }}" {% if i not in day_values or not day_values[i].enabled %}style="display: none;"{% endif %}>
+                                <div class="col">
+                                    <label for="start_{{ i }}" class="form-label">Start Time</label>
+                                    <input type="time" class="form-control" id="start_{{ i }}" name="start_{{ i }}" 
+                                           value="{{ day_values[i].start if i in day_values else '09:00' }}">
+                                </div>
+                                <div class="col">
+                                    <label for="end_{{ i }}" class="form-label">End Time</label>
+                                    <input type="time" class="form-control" id="end_{{ i }}" name="end_{{ i }}" 
+                                           value="{{ day_values[i].end if i in day_values else '17:00' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-primary">Save Availability</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Tips</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Set your regular availability pattern</li>
+                    <li class="list-group-item">Include both morning and afternoon options if possible</li>
+                    <li class="list-group-item">Consider scheduling appointments on different days to distribute them</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Next Steps</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('calendar_slots') }}" class="btn btn-outline-primary">View Available Slots</a>
+                    <a href="{{ url_for('search') }}" class="btn btn-outline-secondary">Find Doctors</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle time slot inputs when day checkbox is clicked
+        const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+        dayCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const targetId = this.getAttribute('data-target');
+                const timeSlot = document.getElementById(targetId);
+                timeSlot.style.display = this.checked ? 'flex' : 'none';
+            });
+        });
+    });
+</script>
+{% endblock %}

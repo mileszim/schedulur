@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Available Slots - Schedulur{% endblock %}
+
+{% block header %}Your Available Calendar Slots{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Available Time Slots</h5>
+                <p class="card-text">
+                    These are the times when you're available for appointments based on your calendar and preferences.
+                </p>
+                
+                <form method="get" action="{{ url_for('calendar_slots') }}" class="mb-4">
+                    <div class="row align-items-end">
+                        <div class="col-auto">
+                            <label for="days" class="form-label">Days to Look Ahead</label>
+                            <select class="form-select" id="days" name="days">
+                                <option value="7" {% if days == 7 %}selected{% endif %}>7 days</option>
+                                <option value="14" {% if days == 14 %}selected{% endif %}>14 days</option>
+                                <option value="30" {% if days == 30 %}selected{% endif %}>30 days</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </div>
+                    </div>
+                </form>
+                
+                {% if not dates %}
+                <div class="alert alert-warning">
+                    No available slots found. Please adjust your availability or check your calendar for conflicts.
+                </div>
+                {% else %}
+                <div class="accordion" id="availableDates">
+                    {% for date_str, slots in dates.items() %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ loop.index }}">
+                            <button class="accordion-button {% if loop.index > 1 %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
+                                {% set date_obj = slots[0].start %}
+                                {{ date_obj.strftime('%A, %B %d, %Y') }} ({{ slots|length }} slots)
+                            </button>
+                        </h2>
+                        <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" data-bs-parent="#availableDates">
+                            <div class="accordion-body">
+                                <div class="list-group">
+                                    {% for slot in slots %}
+                                    <div class="list-group-item list-group-item-action">
+                                        {{ slot.time_str }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Calendar Settings</h5>
+                <p>Current Calendar: {{ user.calendar_provider.title() }}</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('calendar_connect') }}" class="btn btn-outline-primary">Change Calendar</a>
+                    <a href="{{ url_for('availability') }}" class="btn btn-outline-secondary">Set Availability</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Next Steps</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('search') }}" class="btn btn-outline-primary">Find Doctors</a>
+                    <a href="{{ url_for('schedule') }}" class="btn btn-outline-success">Schedule Appointment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

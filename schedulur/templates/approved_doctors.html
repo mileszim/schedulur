@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Approved Doctors - Schedulur{% endblock %}
+
+{% block header %}Approved Doctors{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Doctors Approved for Scheduling</h5>
+                
+                {% if doctors %}
+                <p>You have approved {{ doctors|length }} doctors for scheduling</p>
+                
+                {% for doctor in doctors %}
+                <div class="card mb-3 doctor-card approved">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ doctor.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ doctor.specialization }}</h6>
+                        
+                        {% if doctor.practice_name %}
+                        <p class="mb-1"><strong>Practice:</strong> {{ doctor.practice_name }}</p>
+                        {% endif %}
+                        
+                        <p class="mb-1">
+                            <strong>Location:</strong>
+                            {% if doctor.address %}{{ doctor.address }}{% endif %}
+                            {% if doctor.city and doctor.state %}{{ doctor.city }}, {{ doctor.state }}{% endif %}
+                            {% if doctor.zip_code %}{{ doctor.zip_code }}{% endif %}
+                        </p>
+                        
+                        {% if doctor.distance_miles is not none %}
+                        <p class="mb-1"><strong>Distance:</strong> {{ "%.1f"|format(doctor.distance_miles) }} miles</p>
+                        {% endif %}
+                        
+                        {% if doctor.earliest_available_slot %}
+                        <p class="mb-1"><strong>Earliest available:</strong> {{ doctor.earliest_available_slot }}</p>
+                        {% endif %}
+                        
+                        {% if doctor.accepted_insurance %}
+                        <p class="mb-1"><strong>Insurance:</strong> {{ doctor.accepted_insurance|join(', ') }}</p>
+                        {% endif %}
+                        
+                        {% if doctor.phone %}
+                        <p class="mb-1"><strong>Phone:</strong> {{ doctor.phone }}</p>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <a href="{{ url_for('reject_doctor', doctor_id=doctor.id) }}" class="btn btn-sm btn-danger">Reject</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('schedule') }}" class="btn btn-primary">Schedule Appointment &rarr;</a>
+                </div>
+                
+                {% else %}
+                <div class="alert alert-warning">
+                    <p>You haven't approved any doctors yet.</p>
+                    <p>Search for doctors and approve them to schedule appointments.</p>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('search') }}" class="btn btn-primary">Find Doctors &rarr;</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Next Steps</h5>
+                <p>After approving doctors, you can schedule appointments with them automatically.</p>
+                <p>We'll call their offices on your behalf and book a time that fits your schedule.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('search') }}" class="btn btn-outline-primary">Find More Doctors</a>
+                    <a href="{{ url_for('schedule') }}" class="btn btn-outline-success">Schedule Appointment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Connect Calendar - Schedulur{% endblock %}
+
+{% block header %}Connect to Calendar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Choose Calendar Provider</h5>
+                <p class="card-text">
+                    Connect to your calendar to help us find available time slots for your appointments.
+                </p>
+                
+                <form method="post" action="{{ url_for('calendar_connect') }}">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="provider" id="google" value="google" {% if user.calendar_provider == 'google' %}checked{% endif %}>
+                            <label class="form-check-label" for="google">
+                                Google Calendar
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="provider" id="outlook" value="outlook" {% if user.calendar_provider == 'outlook' %}checked{% endif %}>
+                            <label class="form-check-label" for="outlook">
+                                Microsoft Outlook
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="provider" id="mock" value="mock" {% if user.calendar_provider == 'mock' %}checked{% endif %}>
+                            <label class="form-check-label" for="mock">
+                                Mock Calendar (for testing)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>Note: In this demo, we're using a mock calendar provider. In a real application, you would be redirected to authenticate with your provider.</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Connect</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <p>After connecting your calendar, set your availability:</p>
+            <a href="{{ url_for('availability') }}" class="btn btn-outline-primary">Set Availability &rarr;</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Schedulur - Medical Appointment Scheduler{% endblock %}
+
+{% block header %}Welcome to Schedulur{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Medical Appointment Scheduler</h5>
+                <p class="card-text">
+                    Schedulur helps you find and book appointments with doctors based on your insurance, 
+                    availability, and their specialization.
+                </p>
+                
+                {% if not session.get('user_id') %}
+                <a href="{{ url_for('login') }}" class="btn btn-primary">Get Started</a>
+                {% else %}
+                <h6 class="mt-4">Next Steps:</h6>
+                <div class="list-group">
+                    <a href="{{ url_for('calendar_connect') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6>1. Connect to Calendar</h6>
+                            <span class="badge bg-primary rounded-pill">Step 1</span>
+                        </div>
+                        <p class="mb-1">Link to your Google Calendar or Outlook</p>
+                    </a>
+                    <a href="{{ url_for('availability') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6>2. Set Availability</h6>
+                            <span class="badge bg-primary rounded-pill">Step 2</span>
+                        </div>
+                        <p class="mb-1">Specify your preferred days and times for appointments</p>
+                    </a>
+                    <a href="{{ url_for('search') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6>3. Find Doctors</h6>
+                            <span class="badge bg-primary rounded-pill">Step 3</span>
+                        </div>
+                        <p class="mb-1">Search for doctors based on specialty, insurance, etc.</p>
+                    </a>
+                    <a href="{{ url_for('approved_doctors') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6>4. Approve Doctors</h6>
+                            <span class="badge bg-primary rounded-pill">Step 4</span>
+                        </div>
+                        <p class="mb-1">Choose which doctors you'd like to schedule with</p>
+                    </a>
+                    <a href="{{ url_for('schedule') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6>5. Schedule Appointment</h6>
+                            <span class="badge bg-primary rounded-pill">Step 5</span>
+                        </div>
+                        <p class="mb-1">Book appointments with approved doctors</p>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Features</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Connect to your calendar</li>
+                    <li class="list-group-item">Set your availability</li>
+                    <li class="list-group-item">Search for doctors</li>
+                    <li class="list-group-item">Automated appointment booking</li>
+                    <li class="list-group-item">Store call transcripts</li>
+                    <li class="list-group-item">Add appointments to your calendar</li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if session.get('user_id') %}
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('search') }}" class="btn btn-outline-primary">Find Doctors</a>
+                    <a href="{{ url_for('schedule') }}" class="btn btn-outline-success">Schedule Appointment</a>
+                    <a href="{{ url_for('appointments') }}" class="btn btn-outline-secondary">View Appointments</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
