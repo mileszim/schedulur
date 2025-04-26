@@ -141,14 +141,11 @@ def search():
             insurance = request.form.get('insurance') or user.insurance_provider
             zip_code = request.form.get('zip_code') or user.zip_code
             distance = int(request.form.get('distance', 25))
-            urgency = int(request.form.get('urgency', 1))
-            
             doctors = doctor_search_service.search_doctors(
                 specialization=specialization,
                 insurance=insurance,
                 zip_code=zip_code,
-                max_distance=distance,
-                urgency_level=urgency
+                max_distance=distance
             )
         
         elif search_type == 'query':

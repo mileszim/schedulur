@@ -87,8 +87,7 @@ class DoctorSearchService:
                        specialization: str, 
                        insurance: Optional[str] = None,
                        zip_code: Optional[str] = None,
-                       max_distance: Optional[int] = 25,
-                       urgency_level: int = 1) -> List[Doctor]:
+                       max_distance: Optional[int] = 25) -> List[Doctor]:
         """
         Search for doctors based on criteria
         
@@ -97,7 +96,6 @@ class DoctorSearchService:
             insurance: User's insurance provider
             zip_code: User's zip code for distance calculations
             max_distance: Maximum distance in miles
-            urgency_level: How urgent the appointment is (1-5, 5 being most urgent)
             
         Returns:
             List of matching doctors
@@ -126,10 +124,9 @@ class DoctorSearchService:
             # Limit results by distance
             doctors = [d for d in doctors if d.distance_miles <= max_distance]
             
-            # Add mock earliest available slot based on urgency
-            # Higher urgency should give preference to doctors with earlier slots
+            # Add mock earliest available slot
             for i, doctor in enumerate(doctors):
-                days_offset = (i % 5) + (5 - urgency_level)
+                days_offset = (i % 5)
                 doctor.earliest_available_slot = (datetime.now().replace(hour=9, minute=0) + 
                                               doctor.appointment_duration * (i % 3)).strftime("%Y-%m-%d %H:%M")
             
@@ -213,6 +210,5 @@ class DoctorSearchService:
         return self.search_doctors(
             specialization=specialization or "Primary Care",
             insurance=insurance,
-            zip_code=zip_code,
-            urgency_level=urgency_level
+            zip_code=zip_code
         )
