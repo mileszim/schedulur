@@ -8,6 +8,7 @@ from schedulur.services.user_service import UserService
 from schedulur.services.doctor_service import DoctorService
 from schedulur.services.doctor_search_service import DoctorSearchService
 from schedulur.services.appointment_service import AppointmentService
+from schedulur.integrations.retell import call_doctor, receive_webhook
 
 # Create Flask app
 app = Flask(__name__)
@@ -353,15 +354,8 @@ def retell_webhook():
     if not post_data:
         return jsonify({"error": "Invalid data"}), 400
     print("Received webhook data:", post_data)
-    
-    if post_data["event"] == "call_started":
-        print("Call started event", post_data["call"]["call_id"])
-    elif post_data["event"] == "call_ended":
-        print("Call ended event", post_data["call"]["call_id"])
-    elif post_data["event"] == "call_analyzed":
-        print("Call analyzed event", post_data["call"]["call_id"])
-    else:
-        print("Unknown event", post_data["event"])
+
+    receive_webhook(post_data)
 
     return jsonify({"status": "success"}), 200
 
