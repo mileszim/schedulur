@@ -35,10 +35,6 @@
                         <p class="mb-1"><strong>Distance:</strong> {{ "%.1f"|format(doctor.distance_miles) }} miles</p>
                         {% endif %}
                         
-                        {% if doctor.earliest_available_slot %}
-                        <p class="mb-1"><strong>Earliest available:</strong> {{ doctor.earliest_available_slot }}</p>
-                        {% endif %}
-                        
                         {% if doctor.accepted_insurance %}
                         <p class="mb-1"><strong>Insurance:</strong> {{ doctor.accepted_insurance|join(', ') }}</p>
                         {% endif %}
