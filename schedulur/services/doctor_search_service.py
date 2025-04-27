@@ -23,6 +23,7 @@ class DoctorSearchService:
         
         # Flag to use real API or mock data
         self.use_real_api = os.environ.get('USE_REAL_API', 'false').lower() == 'true'
+        print(f"API Integration enabled: {self.use_real_api} (set USE_REAL_API=true to enable)")
         
     def _ensure_mock_data(self):
         """Create mock doctor data if it doesn't exist"""
@@ -124,12 +125,16 @@ class DoctorSearchService:
                            max_distance: Optional[int] = 25) -> List[Doctor]:
         """Search for doctors using the real API"""
         try:
+            print(f"Using real API to search for {specialization} doctors near {zip_code} within {max_distance} miles")
+            
             # Search doctors via API
             results = self.api.search_doctors(
                 specialization=specialization,
                 zip_code=zip_code,
                 radius_miles=max_distance
             )
+            
+            print(f"API search results: {len(results) if results else 0} doctors found")
             
             if not results:
                 print("No results from API search")
@@ -147,9 +152,13 @@ class DoctorSearchService:
                 
                 # Add mock earliest available slot for now
                 # In a real implementation, this would come from a scheduling API
+                from datetime import timedelta
                 i = len(doctors)
-                formatted_data["earliest_available_slot"] = (datetime.now().replace(hour=9, minute=0) + 
-                                          formatted_data["appointment_duration"] * (i % 3)).strftime("%Y-%m-%d %H:%M")
+                days_offset = i % 5  # Days ahead for the appointment
+                time_minutes = (i % 4) * 60  # Hours offset for the appointment time (0, 1, 2, or 3 hours)
+                
+                start_time = datetime.now().replace(hour=9, minute=0) + timedelta(days=days_offset, minutes=time_minutes)
+                formatted_data["earliest_available_slot"] = start_time.strftime("%Y-%m-%d %H:%M")
                 
                 # Calculate approximate distance if we have coordinates
                 if "latitude" in formatted_data and "longitude" in formatted_data and formatted_data["latitude"] and formatted_data["longitude"]:
@@ -197,10 +206,13 @@ class DoctorSearchService:
             doctors = [d for d in doctors if d.distance_miles <= max_distance]
             
             # Add mock earliest available slot
+            from datetime import timedelta
             for i, doctor in enumerate(doctors):
-                days_offset = (i % 5)
-                doctor.earliest_available_slot = (datetime.now().replace(hour=9, minute=0) + 
-                                              doctor.appointment_duration * (i % 3)).strftime("%Y-%m-%d %H:%M")
+                days_offset = i % 5  # Days ahead for the appointment
+                time_minutes = (i % 4) * 60  # Hours offset for the appointment time (0, 1, 2, or 3 hours)
+                
+                start_time = datetime.now().replace(hour=9, minute=0) + timedelta(days=days_offset, minutes=time_minutes)
+                doctor.earliest_available_slot = start_time.strftime("%Y-%m-%d %H:%M")
             
             # Sort by earliest available slot (most favorable) and distance (closest)
             doctors.sort(key=lambda d: (d.earliest_available_slot, d.distance_miles))
