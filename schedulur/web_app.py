@@ -353,7 +353,7 @@ def retell_webhook():
     post_data = request.get_json()
     if not post_data:
         return jsonify({"error": "Invalid data"}), 400
-    print("Received webhook data:", post_data)
+    # print("Received webhook data:", post_data)
 
     receive_webhook(post_data)
 
