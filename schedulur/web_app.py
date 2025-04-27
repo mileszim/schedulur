@@ -347,7 +347,7 @@ def cancel_appointment(appointment_id):
     
     return redirect(url_for('appointments'))
 
-@app.route('/api/retell_webook', methods=['POST'])
+@app.route('/api/retell_webhook', methods=['POST'])
 def retell_webhook():
     """Receive a webhook from Retell"""
     post_data = request.get_json()
