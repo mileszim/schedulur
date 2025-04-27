@@ -3,7 +3,7 @@ from retell import Retell
 
 retell = Retell(api_key=os.environ["RETELL_API_KEY"])
 
-def call_doctor(to_number, user_name, doctor_name, insurance_type):
+def call_doctor(to_number, user_name, doctor_name, insurance_type, timeframe = "3 months"):
   try:
     response = retell.call.create_phone_call(
       from_number=os.environ["RETELL_FROM_NUMBER"],
@@ -12,7 +12,8 @@ def call_doctor(to_number, user_name, doctor_name, insurance_type):
       retell_llm_dynamic_variables={
         "user": user_name,
         "doctor_name": doctor_name,
-        "insurance_type": insurance_type
+        "insurance_type": insurance_type,
+        "timeframe": timeframe
       }
     )
     print(f"Call initiated: {response}")
