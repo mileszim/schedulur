@@ -108,12 +108,18 @@ class DoctorService:
     
     def get_approved_doctors(self) -> List[Doctor]:
         """Get doctors that have been approved by the user"""
+        # Make sure we have the latest data
+        self.load_doctors()
         return [d for d in self.doctors.values() if d.user_approval is True]
     
     def get_rejected_doctors(self) -> List[Doctor]:
         """Get doctors that have been rejected by the user"""
+        # Make sure we have the latest data
+        self.load_doctors()
         return [d for d in self.doctors.values() if d.user_approval is False]
     
     def get_pending_doctors(self) -> List[Doctor]:
         """Get doctors that haven't been approved or rejected yet"""
+        # Make sure we have the latest data
+        self.load_doctors()
         return [d for d in self.doctors.values() if d.user_approval is None]

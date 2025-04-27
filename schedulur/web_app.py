@@ -153,6 +153,16 @@ def search():
             # Search by natural language query
             query = request.form['query']
             doctors = doctor_search_service.search_with_claude(query)
+            
+        # Save doctors to database so they can be approved/rejected
+        for doctor in doctors:
+            existing_doctor = doctor_service.get_doctor(doctor.id)
+            if existing_doctor:
+                # Keep any existing approval status
+                doctor.user_approval = existing_doctor.user_approval
+                doctor_service.update_doctor(doctor.id, doctor)
+            else:
+                doctor_service.create_doctor(doctor)
     
     return render_template('search.html', user=user, doctors=doctors)
 
@@ -170,10 +180,10 @@ def approve_doctor(doctor_id):
     if success:
         doctor = doctor_service.get_doctor(doctor_id)
         flash(f"You approved {doctor.name} for scheduling.", "success")
+        return redirect(url_for('approved_doctors'))
     else:
         flash("Doctor not found.", "danger")
-    
-    return redirect(url_for('search'))
+        return redirect(url_for('search'))
 
 @app.route('/doctor/reject/<doctor_id>')
 def reject_doctor(doctor_id):
