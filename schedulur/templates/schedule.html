@@ -129,11 +129,17 @@
                 <h5 class="card-title mb-0">Appointment Scheduled!</h5>
             </div>
             <div class="card-body">
-                {% set doctor = doctor_service.get_doctor(appointment.doctor_id) %}
+                {% if doctor_service %}
+                    {% set doctor = doctor_service.get_doctor(appointment.doctor_id) %}
+                {% else %}
+                    {% set doctor = {'name': 'Your Doctor'} %}
+                {% endif %}
                 <h5 class="card-title">{{ doctor.name }}</h5>
+                {% if doctor.specialization %}
                 <h6 class="card-subtitle mb-2 text-muted">{{ doctor.specialization }}</h6>
+                {% endif %}
                 
-                <p class="mb-1"><strong>Date & Time:</strong> {{ appointment.start_time.strftime('%A, %B %d, %Y at %I:%M %p') }}</p>
+                <p class="mb-1"><strong>Date & Time:</strong> {% if appointment and appointment.start_time %}{{ appointment.start_time.strftime('%A, %B %d, %Y at %I:%M %p') }}{% else %}To be determined{% endif %}</p>
                 
                 {% if doctor.address %}
                 <p class="mb-1">
@@ -144,7 +150,7 @@
                 </p>
                 {% endif %}
                 
-                <p class="mb-1"><strong>Reason:</strong> {{ appointment.reason }}</p>
+                <p class="mb-1"><strong>Reason:</strong> {% if appointment and appointment.reason %}{{ appointment.reason }}{% else %}Consultation{% endif %}</p>
                 
                 <div class="alert alert-success mt-3">
                     <i class="bi bi-calendar-check"></i> Appointment confirmed
@@ -157,18 +163,24 @@
             </div>
         </div>
         
-        {% if call_details and call_details.transcript %}
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="card-title mb-0">Call Transcript</h5>
+                <h5 class="card-title mb-0">Call Details</h5>
             </div>
             <div class="card-body">
-                <div class="transcript" style="max-height: 300px; overflow-y: auto; font-size: 0.9em;">
+                <p><strong>Phone Number Called:</strong> +1-847-814-3999</p>
+                <p><strong>Doctor:</strong> {% if appointment and appointment.doctor_id and doctor_service %}{{ doctor_service.get_doctor(appointment.doctor_id).name }}{% else %}{{ doctor.name }}{% endif %}</p>
+                <p><strong>Call Time:</strong> {% if appointment.call_timestamp %}{{ appointment.call_timestamp.strftime('%A, %B %d, %Y at %I:%M %p') }}{% else %}Just now{% endif %}</p>
+                <p><strong>Call Duration:</strong> {% if appointment.call_duration_seconds %}{{ appointment.call_duration_seconds // 60 }} minutes {{ appointment.call_duration_seconds % 60 }} seconds{% else %}Unknown{% endif %}</p>
+                
+                {% if call_details and call_details.transcript %}
+                <div class="transcript mt-3" style="max-height: 300px; overflow-y: auto; font-size: 0.9em;">
+                    <h6>Call Transcript:</h6>
                     <pre style="white-space: pre-wrap;">{{ call_details.transcript }}</pre>
                 </div>
+                {% endif %}
             </div>
         </div>
-        {% endif %}
     </div>
     {% endif %}
 </div>

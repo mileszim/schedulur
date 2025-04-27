@@ -89,8 +89,15 @@ class MockCommunicationProvider(CommunicationProvider):
         doctor_name = "Dr. Smith"
         time_preference = "morning"
         
-        if "Dr." in message:
-            doctor_name = message.split("Dr.")[1].split()[0]
+        # Safely extract doctor name if possible
+        try:
+            if "Dr." in message:
+                parts = message.split("Dr.")
+                if len(parts) > 1 and parts[1].strip():
+                    doctor_name = "Dr. " + parts[1].split()[0]
+        except Exception:
+            # If any error occurs, just use the default
+            doctor_name = "Dr. Smith"
         
         # Try to extract time preference from message
         if "morning" in message.lower():

@@ -274,7 +274,7 @@ def schedule():
         # Try to schedule with first approved doctor
         doctor = approved_doctors[0]
         
-        flash(f"Calling {doctor.name} to schedule your appointment...", "info")
+        flash(f"Calling {doctor.name} at +1-847-814-3999 to schedule your appointment...", "info")
         
         # Schedule appointment
         appointment, call_details = appointment_service.schedule_with_doctor(
@@ -285,11 +285,12 @@ def schedule():
         )
         
         if appointment:
-            flash(f"Success! Your appointment with {doctor.name} has been scheduled.", "success")
+            flash(f"Success! We called {doctor.name} at +1-847-814-3999 and your appointment has been scheduled.", "success")
+            flash(f"Your appointment is scheduled for {appointment.start_time.strftime('%A, %B %d at %I:%M %p')}", "info")
         else:
             flash(f"Failed to schedule appointment with {doctor.name}", "danger")
     
-    return render_template('schedule.html', user=user, appointment=appointment, call_details=call_details)
+    return render_template('schedule.html', user=user, appointment=appointment, call_details=call_details, doctor_service=doctor_service)
 
 @app.route('/appointments')
 def appointments():
